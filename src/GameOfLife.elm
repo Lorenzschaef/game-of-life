@@ -25,13 +25,13 @@ type alias Model =
 type alias Board =
     { width: Int
     , height: Int
-    , cells: Array Cell
+    , cells: Array (Array Cell)
     }
 
 type alias Cell = Bool
 
 type Msg
-    = Toggle Int
+    = Toggle (Int, Int)
     | Tick
     | Pause Bool
     | ChangeSpeed Int
@@ -50,7 +50,7 @@ initBoard : Board
 initBoard =
     { width = 100
     , height = 100
-    , cells = Array.repeat (100 * 100) False
+    , cells = Array.repeat 100 <| Array.repeat 100 False
     }
 
 subscriptions model =
@@ -67,41 +67,45 @@ update msg model =
         ChangeSpeed factor -> ({ model | speed = factor}, Cmd.none)
         Clear -> ({ model | board = initBoard }, Cmd.none)
 
-toggleCell : Board -> Int -> Board
+toggleCell : Board -> (Int, Int) -> Board
 toggleCell board index =
     case getCell board index of
         Just value -> setCell board index (not value)
         Nothing -> board
 
-getCell : Board -> Int -> Maybe Cell
-getCell board index = Array.get index board.cells
+getCell : Board -> (Int, Int) -> Maybe Cell
+getCell board (x, y) = board.cells |> Array.get x |> Maybe.andThen (Array.get y)
 
-setCell : Board -> Int -> Cell -> Board
-setCell board index value = { board | cells = Array.set index value board.cells }
+setCell : Board -> (Int, Int) -> Cell -> Board
+setCell board (x, y) value =
+    case Array.get x board.cells of
+        Nothing -> board
+        Just row ->
+            { board | cells = Array.set x (Array.set y value row) board.cells }
 
-neighborsOf : Board -> Int -> List Cell
-neighborsOf board index =
-    [ getCell board (index - board.width - 1)
-    , getCell board (index - board.width)
-    , getCell board (index - board.width + 1)
-    , getCell board (index - 1)
-    , getCell board (index + 1)
-    , getCell board (index + board.width - 1)
-    , getCell board (index + board.width)
-    , getCell board (index + board.width + 1)
+neighborsOf : Board -> (Int, Int) -> List Cell
+neighborsOf board (x, y) =
+    [ getCell board (x - 1, y - 1)
+    , getCell board (x - 1, y)
+    , getCell board (x - 1, y + 1)
+    , getCell board (x, y - 1)
+    , getCell board (x, y + 1)
+    , getCell board (x + 1, y - 1)
+    , getCell board (x + 1, y)
+    , getCell board (x + 1, y + 1)
     ]
     |> List.filterMap identity
 
-countAliveNeighbors : Board -> Int -> Int
-countAliveNeighbors board index =
-    neighborsOf board index
+countAliveNeighbors : Board -> (Int, Int) -> Int
+countAliveNeighbors board coords =
+    neighborsOf board coords
     |> List.filter (\x -> x== True)
     |> List.length
 
-tickCell : Board -> Int -> Cell -> Cell
-tickCell board index value =
+tickCell : Board -> (Int, Int) -> Cell -> Cell
+tickCell board coords value =
     let
-        count = countAliveNeighbors board index
+        count = countAliveNeighbors board coords
     in
         case value of
             False ->
@@ -111,7 +115,7 @@ tickCell board index value =
 
 
 tick : Board -> Board
-tick board = { board | cells = Array.indexedMap (tickCell board) board.cells }
+tick board = { board | cells = Array.indexedMap (\x row -> Array.indexedMap (\y cell -> tickCell board (x, y) cell) row) board.cells }
 
 -- view
 
@@ -119,7 +123,7 @@ view : Model -> Html Msg
 view model = div []
     [ table
         [ style "width" ((String.fromInt (model.board.width * 20)) ++ "px")
-        ] (viewCells model.board)
+        ] (viewRows model.board.cells)
     , div [ class "controls" ]
         [ button [ onClick Tick ] [ text "Step" ]
         , button [ onClick (Pause (not model.paused)) ] [ text (if model.paused then "Play" else "Pause") ]
@@ -128,28 +132,20 @@ view model = div []
         ]
     ]
 
-cell : Int -> Bool -> Html Msg
-cell index state = td
-    ([ onClick (Toggle index)
+viewCell : (Int, Int) -> Bool -> Html Msg
+viewCell coords state = td
+    ([ onClick (Toggle coords)
     ] ++ (if state then [class "alive"] else [])
      ) []
 
 
-viewCells : Board -> List (Html Msg)
-viewCells board =
-    Array.indexedMap cell board.cells
+viewCells : Int -> Array Cell -> List (Html Msg)
+viewCells x row =
+    Array.indexedMap (\y value -> viewCell (x, y) value) row
     |> Array.toList
-    |> chunksOfLeft board.width
-    |> List.map (\cells -> tr [] cells)
 
-
-chunksOfLeft : Int -> List a -> List (List a)
-chunksOfLeft k xs =
-    if k == 0 then
-        [ [] ]
-    else if k < 0 then
-        []
-    else if List.length xs > k then
-        List.take k xs :: chunksOfLeft k (List.drop k xs)
-    else
-        [ xs ]
+viewRows : Array (Array Cell) -> List (Html Msg)
+viewRows rows =
+    Array.indexedMap viewCells rows
+    |> Array.toList
+    |> List.map (\row -> tr [] row)
