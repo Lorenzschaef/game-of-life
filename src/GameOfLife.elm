@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html, button, div, table, td, text, tr)
 import Html.Attributes exposing (class, style)
 import Array exposing (Array)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onMouseDown, onMouseOver, onMouseUp)
 import Time
 
 
@@ -20,6 +20,7 @@ type alias Model =
     { board: Board
     , paused: Bool
     , speed: Int
+    , paintMode: Maybe Bool
     }
 
 type alias Board =
@@ -36,6 +37,9 @@ type Msg
     | Pause Bool
     | ChangeSpeed Int
     | Clear
+    | StartPaint Bool
+    | StopPaint
+    | Paint (Int, Int)
 
 
 init : () -> (Model, Cmd Msg)
@@ -43,6 +47,7 @@ init _ = (
     { board = initBoard
     , paused = True
     , speed = 2
+    , paintMode = Nothing
     }
     , Cmd.none )
 
@@ -56,7 +61,7 @@ initBoard =
 subscriptions model =
     if model.paused
         then Sub.none
-        else Time.every (toFloat (1000 // (model.speed * 2))) (always Tick)
+        else Time.every (toFloat (1000 // (model.speed * model.speed))) (always Tick)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -66,6 +71,13 @@ update msg model =
         Pause bool -> ({ model | paused = bool }, Cmd.none)
         ChangeSpeed factor -> ({ model | speed = factor}, Cmd.none)
         Clear -> ({ model | board = initBoard }, Cmd.none)
+        StartPaint bool -> ({ model | paintMode = Just bool }, Cmd.none)
+        StopPaint -> ({ model | paintMode = Nothing }, Cmd.none)
+        Paint coords -> (
+            case model.paintMode of
+                Nothing -> model
+                Just state -> { model | board = setCell model.board coords state }
+            , Cmd.none)
 
 toggleCell : Board -> (Int, Int) -> Board
 toggleCell board index =
@@ -135,6 +147,9 @@ view model = div []
 viewCell : (Int, Int) -> Bool -> Html Msg
 viewCell coords state = td
     ([ onClick (Toggle coords)
+    , onMouseDown (StartPaint (not state))
+    , onMouseUp (StopPaint)
+    , onMouseOver (Paint coords)
     ] ++ (if state then [class "alive"] else [])
      ) []
 
