@@ -23,11 +23,7 @@ type alias Model =
     , paintMode: Maybe Bool
     }
 
-type alias Board =
-    { width: Int
-    , height: Int
-    , cells: Array (Array Cell)
-    }
+type alias Board = Array (Array Cell)
 
 type alias Cell = Bool
 
@@ -52,11 +48,8 @@ init _ = (
     , Cmd.none )
 
 initBoard : Board
-initBoard =
-    { width = 100
-    , height = 100
-    , cells = Array.repeat 100 <| Array.repeat 100 False
-    }
+initBoard = Array.repeat 100 <| Array.repeat 100 False
+
 
 subscriptions model =
     if model.paused
@@ -86,14 +79,14 @@ toggleCell board index =
         Nothing -> board
 
 getCell : Board -> (Int, Int) -> Maybe Cell
-getCell board (x, y) = board.cells |> Array.get x |> Maybe.andThen (Array.get y)
+getCell board (x, y) = board |> Array.get x |> Maybe.andThen (Array.get y)
 
 setCell : Board -> (Int, Int) -> Cell -> Board
 setCell board (x, y) value =
-    case Array.get x board.cells of
+    case Array.get x board of
         Nothing -> board
         Just row ->
-            { board | cells = Array.set x (Array.set y value row) board.cells }
+            Array.set x (Array.set y value row) board
 
 neighborsOf : Board -> (Int, Int) -> List Cell
 neighborsOf board (x, y) =
@@ -127,15 +120,15 @@ tickCell board coords value =
 
 
 tick : Board -> Board
-tick board = { board | cells = Array.indexedMap (\x row -> Array.indexedMap (\y cell -> tickCell board (x, y) cell) row) board.cells }
+tick board = Array.indexedMap (\x row -> Array.indexedMap (\y cell -> tickCell board (x, y) cell) row) board
 
 -- view
 
 view : Model -> Html Msg
 view model = div []
     [ table
-        [ style "width" ((String.fromInt (model.board.width * 20)) ++ "px")
-        ] (viewRows model.board.cells)
+        [ style "width" ((String.fromInt ((Array.length model.board) * 20)) ++ "px")
+        ] (viewRows model.board)
     , div [ class "controls" ]
         [ button [ onClick Tick ] [ text "Step" ]
         , button [ onClick (Pause (not model.paused)) ] [ text (if model.paused then "Play" else "Pause") ]
