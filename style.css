@@ -25,6 +25,29 @@ td.alive {
 
 div.controls {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    box-shadow: #00000040 5px 5px 15px;
+}
+
+div.controls > *, div.controls > *:focus {
+    background-color: darkgoldenrod;
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    margin: 1px;
+    padding: 10px;
+    outline: none;
+}
+
+div.controls > *:hover {
+    background-color: black;
+    color: darkgoldenrod;
+}
+
+div.controls > *:active {
+    background-color: #333;
+    color: darkgoldenrod;
 }
