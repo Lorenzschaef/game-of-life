@@ -36,6 +36,7 @@ type Msg
     | StartPaint Bool
     | StopPaint
     | Paint (Int, Int)
+    | InsertTemplate (Int, Int) Board
 
 
 init : () -> (Model, Cmd Msg)
@@ -48,7 +49,10 @@ init _ = (
     , Cmd.none )
 
 initBoard : Board
-initBoard = Array.repeat 100 <| Array.repeat 100 False
+initBoard =
+    Array.repeat 100 False
+    |> Array.repeat 100
+    --|> insert (10, 10) example
 
 
 subscriptions model =
@@ -71,6 +75,7 @@ update msg model =
                 Nothing -> model
                 Just state -> { model | board = setCell model.board coords state }
             , Cmd.none)
+        InsertTemplate coords template -> ({ model | board = insert coords template model.board }, Cmd.none)
 
 toggleCell : Board -> (Int, Int) -> Board
 toggleCell board index =
@@ -122,6 +127,33 @@ tickCell board coords value =
 tick : Board -> Board
 tick board = Array.indexedMap (\x row -> Array.indexedMap (\y cell -> tickCell board (x, y) cell) row) board
 
+
+insert : (Int, Int) -> Board -> Board -> Board
+insert (offsetX, offsetY) inner outer =
+    mapAt offsetX offsetY outer inner
+
+
+mapAt : Int -> Int -> Array (Array a) -> Array (Array a) -> Array (Array a)
+mapAt offsetX offsetY outer inner =
+    Array.indexedMap
+    (\i v ->
+        case (Array.get (i - offsetX) inner) of
+            Nothing -> v
+            Just innerRow -> insertAt offsetY v innerRow identity
+        )
+    outer
+
+insertAt : Int -> Array a -> Array a -> (a -> a) -> Array a
+insertAt offset outer inner func =
+    Array.indexedMap (\i v -> func <| Maybe.withDefault v (Array.get (i - offset) inner)) outer
+
+glider: Board
+glider = Array.fromList <| List.map Array.fromList
+    [ [False, True, False]
+    , [False, False, True]
+    , [True, True, True]
+    ]
+
 -- view
 
 view : Model -> Html Msg
@@ -134,6 +166,7 @@ view model = div []
         , button [ onClick (Pause (not model.paused)) ] [ text (if model.paused then "Play" else "Pause") ]
         , button [ onClick (ChangeSpeed (1 + modBy 5 model.speed)) ] [ text <| "Speed " ++ (String.fromInt model.speed) ]
         , button [ onClick Clear ] [ text "Clear" ]
+        , button [ onClick (InsertTemplate (20, 20) glider) ] [ text "Glider" ]
         ]
     ]
 
