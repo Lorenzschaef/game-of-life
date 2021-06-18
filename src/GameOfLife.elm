@@ -1,8 +1,8 @@
 module GameOfLife exposing (..)
 
 import Browser
-import Html exposing (Html, button, div, table, td, text, tr)
-import Html.Attributes exposing (class, style)
+import Html exposing (Html, button, div, table, td, text, tr, a)
+import Html.Attributes exposing (class, style, href, target)
 import Array exposing (Array)
 import Html.Events exposing (onClick, onMouseDown, onMouseOver, onMouseUp)
 import Time
@@ -201,6 +201,8 @@ view model = div []
         , button [ onClick (InsertTemplate (5, 5) glider) ] [ text "Glider" ]
         , button [ onClick (InsertTemplate (15, 20) pentadecathlon) ] [ text "Pentadecathlon" ]
         , button [ onClick (InsertTemplate (5, 5) gliderGun) ] [ text "Glider Gun" ]
+        , div [ class "spacer" ] []
+        , a [ href "https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life", target "_blank" ] [ text "About (Wikipedia)" ]
         ]
     ]
 
