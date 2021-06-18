@@ -67,7 +67,7 @@ update msg model =
         Tick -> ({ model | board = tick model.board}, Cmd.none)
         Pause bool -> ({ model | paused = bool }, Cmd.none)
         ChangeSpeed factor -> ({ model | speed = factor}, Cmd.none)
-        Clear -> ({ model | board = initBoard }, Cmd.none)
+        Clear -> ({ model | board = initBoard, paused = True }, Cmd.none)
         StartPaint bool -> ({ model | paintMode = Just bool }, Cmd.none)
         StopPaint -> ({ model | paintMode = Nothing }, Cmd.none)
         Paint coords -> (
@@ -75,7 +75,7 @@ update msg model =
                 Nothing -> model
                 Just state -> { model | board = setCell model.board coords state }
             , Cmd.none)
-        InsertTemplate coords template -> ({ model | board = insert coords template model.board }, Cmd.none)
+        InsertTemplate coords template -> ({ model | board = insert coords template initBoard }, Cmd.none)
 
 toggleCell : Board -> (Int, Int) -> Board
 toggleCell board index =
@@ -197,9 +197,10 @@ view model = div []
         , button [ onClick (Pause (not model.paused)) ] [ text (if model.paused then "Play" else "Pause") ]
         , button [ onClick (ChangeSpeed (1 + modBy 5 model.speed)) ] [ text <| "Speed " ++ (String.fromInt model.speed) ]
         , button [ onClick Clear ] [ text "Clear" ]
-        , button [ onClick (InsertTemplate (20, 20) glider) ] [ text "Glider" ]
-        , button [ onClick (InsertTemplate (20, 20) pentadecathlon) ] [ text "Pentadecathlon" ]
-        , button [ onClick (InsertTemplate (20, 20) gliderGun) ] [ text "Glider Gun" ]
+        , div [ class "spacer" ] []
+        , button [ onClick (InsertTemplate (5, 5) glider) ] [ text "Glider" ]
+        , button [ onClick (InsertTemplate (15, 20) pentadecathlon) ] [ text "Pentadecathlon" ]
+        , button [ onClick (InsertTemplate (5, 5) gliderGun) ] [ text "Glider Gun" ]
         ]
     ]
 
