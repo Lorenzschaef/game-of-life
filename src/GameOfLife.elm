@@ -148,11 +148,42 @@ insertAt offset outer inner func =
     Array.indexedMap (\i v -> func <| Maybe.withDefault v (Array.get (i - offset) inner)) outer
 
 glider: Board
-glider = Array.fromList <| List.map Array.fromList
-    [ [False, True, False]
-    , [False, False, True]
-    , [True, True, True]
+glider = templateToBoard
+    ["-X-"
+    ,"--X"
+    ,"XXX"
     ]
+
+pentadecathlon: Board
+pentadecathlon = templateToBoard
+    ["--X----X--"
+    ,"XX-XXXX-XX"
+    ,"--X----X--"
+    ]
+
+gliderGun: Board
+gliderGun = templateToBoard
+    [ "-------------------------X------------"
+    , "-----------------------X-X------------"
+    , "-------------XX------XX------------XX-"
+    , "------------X---X----XX------------XX-"
+    , "-XX--------X-----X---XX---------------"
+    , "-XX--------X---X-XX----X-X------------"
+    , "-----------X-----X-------X------------"
+    , "------------X---X---------------------"
+    , "-------------XX-----------------------"
+    ]
+
+
+templateToBoard : List String -> Board
+templateToBoard strings =
+    strings |>
+    List.map (\string -> string
+        |> String.toList
+        |> List.map (\char -> char == 'X')
+        |> Array.fromList
+        )
+    |> Array.fromList
 
 -- view
 
@@ -167,6 +198,8 @@ view model = div []
         , button [ onClick (ChangeSpeed (1 + modBy 5 model.speed)) ] [ text <| "Speed " ++ (String.fromInt model.speed) ]
         , button [ onClick Clear ] [ text "Clear" ]
         , button [ onClick (InsertTemplate (20, 20) glider) ] [ text "Glider" ]
+        , button [ onClick (InsertTemplate (20, 20) pentadecathlon) ] [ text "Pentadecathlon" ]
+        , button [ onClick (InsertTemplate (20, 20) gliderGun) ] [ text "Glider Gun" ]
         ]
     ]
 
