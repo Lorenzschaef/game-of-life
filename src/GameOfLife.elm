@@ -154,6 +154,14 @@ glider = templateToBoard
     ,"XXX"
     ]
 
+spaceship1: Board
+spaceship1 = templateToBoard
+    ["X--X-"
+    ,"----X"
+    ,"X---X"
+    ,"-XXXX"
+    ]
+
 pentadecathlon: Board
 pentadecathlon = templateToBoard
     ["--X----X--"
@@ -174,6 +182,22 @@ gliderGun = templateToBoard
     , "-------------XX-----------------------"
     ]
 
+pulsar: Board
+pulsar = templateToBoard
+    [ "--XXX---XXX--"
+    , "-------------"
+    , "X----X-X----X"
+    , "X----X-X----X"
+    , "X----X-X----X"
+    , "--XXX---XXX--"
+    , "-------------"
+    , "--XXX---XXX--"
+    , "X----X-X----X"
+    , "X----X-X----X"
+    , "X----X-X----X"
+    , "-------------"
+    , "--XXX---XXX--"
+    ]
 
 templateToBoard : List String -> Board
 templateToBoard strings =
@@ -198,9 +222,11 @@ view model = div []
         , button [ onClick (ChangeSpeed (1 + modBy 5 model.speed)) ] [ text <| "Speed " ++ (String.fromInt model.speed) ]
         , button [ onClick Clear ] [ text "Clear" ]
         , div [ class "spacer" ] []
-        , button [ onClick (InsertTemplate (5, 5) glider) ] [ text "Glider" ]
         , button [ onClick (InsertTemplate (15, 20) pentadecathlon) ] [ text "Pentadecathlon" ]
+        , button [ onClick (InsertTemplate (10, 20) pulsar) ] [ text "Pulsar" ]
+        , button [ onClick (InsertTemplate (5, 5) glider) ] [ text "Glider" ]
         , button [ onClick (InsertTemplate (5, 5) gliderGun) ] [ text "Glider Gun" ]
+        , button [ onClick (InsertTemplate (5, 5) spaceship1) ] [ text "Spaceship" ]
         , div [ class "spacer" ] []
         , a [ href "https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life", target "_blank" ] [ text "About (Wikipedia)" ]
         ]
