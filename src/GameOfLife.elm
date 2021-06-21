@@ -52,7 +52,6 @@ initBoard : Board
 initBoard =
     Array.repeat 100 False
     |> Array.repeat 100
-    --|> insert (10, 10) example
 
 
 subscriptions model =
